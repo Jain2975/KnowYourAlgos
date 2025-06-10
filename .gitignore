@@ -1,0 +1,18 @@
+# Ignore all node_modules from frontend and backend
+**/node_modules/
+
+# Build output (optional for frontend)
+frontend/build/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# dotenv files (in case you use any)
+**/.env
+
+# Optional: ignore JSON data if you don’t want to push it
+backend/data/algos.json
