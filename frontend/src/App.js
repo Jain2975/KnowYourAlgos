@@ -9,7 +9,7 @@ function App() {
 
   // Fetch existing notes from backend on load
   useEffect(() => {
-    fetch("http://localhost:3000/algos")
+    fetch("https://knowyouralgos.onrender.com/algos")
       .then((res) => res.json())
       .then((data) => setNotes(data))
       .catch((err) => console.error("Failed to load notes:", err));
@@ -18,7 +18,7 @@ function App() {
   // Add a new note and persist to backend
   const addNote = async (newNote) => {
     try {
-      const res = await fetch("http://localhost:3000/algos", {
+      const res = await fetch("https://knowyouralgos.onrender.com/algos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newNote)
@@ -33,7 +33,7 @@ function App() {
   // Delete a note and persist the change
   const deleteNote = async (id) => {
     try {
-      await fetch(`http://localhost:3000/algos/${id}`, {
+      await fetch(`https://knowyouralgos.onrender.com/algos/${id}`, {
         method: "DELETE"
       });
       setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
