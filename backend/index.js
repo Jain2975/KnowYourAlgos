@@ -6,8 +6,10 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://know-your-algos.vercel.app']
+}));
 
-const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
