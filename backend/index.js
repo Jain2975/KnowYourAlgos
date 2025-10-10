@@ -7,8 +7,8 @@ import cookieParser from 'cookie-parser';
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import puppeteer from 'puppeteer-core';
-import { executablePath } from 'puppeteer-core';
+import puppeteer from 'puppeteer';
+
 
 dotenv.config();
 
@@ -277,7 +277,6 @@ app.get("/algos/pdf",auth,async (req,res)=>{
       const browser = await puppeteer.launch({
         headless: true,
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        executablePath: executablePath(),
       });
 
 
