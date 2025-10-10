@@ -19,13 +19,13 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  // origin: 'https://know-your-algos.vercel.app',
-  // methods: ['GET', 'POST', 'DELETE'],
-  // credentials: true
-
-  origin: [ 'https://know-your-algos.vercel.app'/*, 'http://localhost:3000', 'http://localhost:3001'*/ ],
+  origin: 'https://know-your-algos.vercel.app',
   methods: ['GET', 'POST', 'DELETE'],
   credentials: true
+
+  // origin: [ 'https://know-your-algos.vercel.app'/*, 'http://localhost:3000', 'http://localhost:3001'*/ ],
+  // methods: ['GET', 'POST', 'DELETE'],
+  // credentials: true
 }));
 
 app.use(express.json());
