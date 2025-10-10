@@ -8,7 +8,7 @@ import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import puppeteer from 'puppeteer-core';
-import { executablePath } from 'puppeteer';
+import { executablePath } from 'puppeteer-core';
 
 dotenv.config();
 
