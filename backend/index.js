@@ -193,7 +193,6 @@ app.delete("/algos/:id", auth, async (req, res) => {
 });
 
 //Download Notes
-import pdf from "html-pdf-node";
 
 app.get("/algos/pdf", auth, async (req, res) => {
   try {
