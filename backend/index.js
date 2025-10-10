@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import { executablePath } from 'puppeteer';
 
 dotenv.config();
