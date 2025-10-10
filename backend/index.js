@@ -8,6 +8,7 @@ import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import puppeteer from 'puppeteer';
+import { executablePath } from 'puppeteer';
 
 dotenv.config();
 
@@ -273,10 +274,12 @@ app.get("/algos/pdf",auth,async (req,res)=>{
           </body>
         </html>
       `;
-      const browser=await puppeteer.launch({
+      const browser = await puppeteer.launch({
         headless: true,
-        args: ["--no-sandbox","--disable-setuid-sandbox"]
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        executablePath: executablePath(),
       });
+
 
       const page= await browser.newPage();
       await page.setContent(html,{waitUntil:"networkidle0"});
