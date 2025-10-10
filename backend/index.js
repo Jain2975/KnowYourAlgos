@@ -7,8 +7,7 @@ import cookieParser from 'cookie-parser';
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import puppeteer from 'puppeteer';
-
+import pdf from "html-pdf-node";
 
 dotenv.config();
 
@@ -194,114 +193,107 @@ app.delete("/algos/:id", auth, async (req, res) => {
 });
 
 //Download Notes
-app.get("/algos/pdf",auth,async (req,res)=>{
-  try{
-    const notes=await Note.find({userId: req.userId}).sort({createdAt: -1});
+import pdf from "html-pdf-node";
 
-    if(notes.length===0){
-      return res.status(404).json({message: "No Notes found"});
+app.get("/algos/pdf", auth, async (req, res) => {
+  try {
+    const notes = await Note.find({ userId: req.userId }).sort({ createdAt: -1 });
+
+    if (notes.length === 0) {
+      return res.status(404).json({ message: "No Notes found" });
     }
 
-    const user= await User.findById(req.userId);
+    const user = await User.findById(req.userId);
 
-  const html = `
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: 'Arial', sans-serif;
-                padding: 40px;
-                background: #f8fafc;
-                color: #333;
-              }
-              h1 {
-                text-align: center;
-                color: #0a66c2;
-                margin-bottom: 10px;
-              }
-              h3 {
-                text-align: center;
-                color: #444;
-                margin-bottom: 40px;
-              }
-              .note {
-                background: #fff;
-                padding: 20px;
-                margin-bottom: 20px;
-                border-radius: 10px;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-              }
-              .note h2 {
-                color: #0a66c2;
-                margin-bottom: 10px;
-              }
-              .label {
-                font-weight: bold;
-                color: #555;
-              }
-              .value {
-                margin-top: 4px;
-                margin-bottom: 10px;
-                line-height: 1.6;
-              }
-              footer {
-                text-align: center;
-                font-size: 12px;
-                color: #777;
-                margin-top: 40px;
-              }
-            </style>
-          </head>
-          <body>
-            <h1>KnowYourAlgos - Quick Revision Notes</h1>
-            <h3>Generated for ${user.username}</h3>
-            ${notes
-              .map(
-                (n, i) => `
-                  <div class="note">
-                    <h2>${i + 1}. ${n.name}</h2>
-                    <div class="label">Category:</div>
-                    <div class="value">${n.category}</div>
-                    <div class="label">Description:</div>
-                    <div class="value">${n.description || "—"}</div>
-                    <div class="label">Use Cases:</div>
-                    <div class="value">${n.useCases || "—"}</div>
-                  </div>
-                `
-              )
-              .join("")}
-            <footer>Generated on ${new Date().toLocaleDateString()} © KnowYourAlgos</footer>
-          </body>
-        </html>
-      `;
-      const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: "/usr/bin/google-chrome-stable", 
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
+    const html = `
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: 'Arial', sans-serif;
+              padding: 40px;
+              background: #f8fafc;
+              color: #333;
+            }
+            h1 {
+              text-align: center;
+              color: #0a66c2;
+              margin-bottom: 10px;
+            }
+            h3 {
+              text-align: center;
+              color: #444;
+              margin-bottom: 40px;
+            }
+            .note {
+              background: #fff;
+              padding: 20px;
+              margin-bottom: 20px;
+              border-radius: 10px;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            }
+            .note h2 {
+              color: #0a66c2;
+              margin-bottom: 10px;
+            }
+            .label {
+              font-weight: bold;
+              color: #555;
+            }
+            .value {
+              margin-top: 4px;
+              margin-bottom: 10px;
+              line-height: 1.6;
+            }
+            footer {
+              text-align: center;
+              font-size: 12px;
+              color: #777;
+              margin-top: 40px;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>KnowYourAlgos - Quick Revision Notes</h1>
+          <h3>Generated for ${user.username}</h3>
+          ${notes
+            .map(
+              (n, i) => `
+                <div class="note">
+                  <h2>${i + 1}. ${n.name}</h2>
+                  <div class="label">Category:</div>
+                  <div class="value">${n.category}</div>
+                  <div class="label">Description:</div>
+                  <div class="value">${n.description || "—"}</div>
+                  <div class="label">Use Cases:</div>
+                  <div class="value">${n.useCases || "—"}</div>
+                </div>
+              `
+            )
+            .join("")}
+          <footer>Generated on ${new Date().toLocaleDateString()} © KnowYourAlgos</footer>
+        </body>
+      </html>
+    `;
 
+    const file = { content: html };
+    const options = { format: "A4" };
 
-      const page= await browser.newPage();
-      await page.setContent(html,{waitUntil:"networkidle0"});
+    const pdfBuffer = await pdf.generatePdf(file, options);
 
-      const pdf= await page.pdf({format: "A4",printBackground: true});
-      await browser.close();
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": 'attachment; filename="KnowYourAlgos_Notes.pdf"',
+      "Content-Length": pdfBuffer.length
+    });
+    res.send(pdfBuffer);
 
-      // res.setHeader("Content-Disposition","attachment; filename=KnowYourAlgos_Notes.pdf");
-      // res.contentType("application/pdf");
-      // res.send(pdf);
-      res.set({
-        "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="KnowYourAlgos_Notes.pdf"',
-        "Content-Length": pdf.length, // optional but good
-      });
-res.end(pdf);
-
-  }catch(err){
-    console.log("Cannot fetch notes properly",err);
+  } catch (err) {
+    console.error("Cannot fetch notes properly", err);
     res.status(500).json({ message: "Failed to generate PDF" });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
