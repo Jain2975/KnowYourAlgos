@@ -292,7 +292,7 @@ app.get("/algos/pdf",auth,async (req,res)=>{
         "Content-Disposition": 'attachment; filename="KnowYourAlgos_Notes.pdf"',
         "Content-Length": pdf.length, // optional but good
       });
-res.end(pdf);a
+res.end(pdf);
 
   }catch(err){
     console.log("Cannot fetch notes properly",err);
