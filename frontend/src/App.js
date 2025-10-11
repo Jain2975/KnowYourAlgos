@@ -207,7 +207,7 @@ function App() {
         }}
       />
 
-      <NoteList notes={filteredNotes} onDelete={deleteNote} onUpdate={updateNote}/>
+      <NoteList notes={filteredNotes} onDelete={deleteNote} onEdit={updateNote}/>
     </div>
   );
 }
