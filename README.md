@@ -1,10 +1,10 @@
-#KnowYourAlgos
+# KnowYourAlgos
 KnowYourAlgos helps you build your own algorithm knowledge base.
 It lets you store every algorithm you learn — along with its category, description, and real-world use cases — all in one place.
 
 Whether you’re preparing for interviews, competitive programming, or just want to keep track of what you’ve learned, this app helps you stay organized.
 
-##✨ Features
+## ✨ Features
 
 🧩 Add Algorithm Notes — Save details like name, category, short description, and where it’s used.
 
