@@ -164,7 +164,7 @@ app.get("/algos/notes", auth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
+//Post note
 app.post("/algos/notes", auth, async (req, res) => {
   try {
     const { name, category, description, useCases } = req.body;
@@ -178,7 +178,7 @@ app.post("/algos/notes", auth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
+//Delete note
 app.delete("/algos/:id", auth, async (req, res) => {
   try {
     const deleted = await Note.findOneAndDelete({
@@ -191,9 +191,30 @@ app.delete("/algos/:id", auth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+//Update Note
+// Update Note
+app.put("/algos/:id", auth, async (req, res) => {
+  try {
+    const { name, category, description, useCases } = req.body;
+
+    const updatedNote = await Note.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { name, category, description, useCases },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedNote) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    res.json(updatedNote);
+  } catch (err) {
+    console.error("Error updating note:", err);
+    res.status(500).json({ message: "Failed to update note" });
+  }
+});
 
 //Download Notes
-
 app.get("/algos/pdf", auth, async (req, res) => {
   try {
     const notes = await Note.find({ userId: req.userId }).sort({ createdAt: -1 });
