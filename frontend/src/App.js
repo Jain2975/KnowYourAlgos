@@ -88,6 +88,27 @@ function App() {
     }
   };
 
+  const updateNote = async (id, updatedData) => {
+    try {
+      const res = await fetch(`${API_BASE}/algos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(updatedData),
+      });
+  
+      if (!res.ok) throw new Error("Failed to update note");
+  
+      const updatedNote = await res.json();
+      setNotes((prevNotes) =>
+        prevNotes.map((note) => (note._id === id ? updatedNote : note))
+      );
+    } catch (err) {
+      console.error("Error updating note:", err);
+    }
+  };
+
+  
   const deleteNote = async (id) => {
     try {
       await fetch(`${API_BASE}/algos/${id}`, {
@@ -186,7 +207,7 @@ function App() {
         }}
       />
 
-      <NoteList notes={filteredNotes} onDelete={deleteNote} />
+      <NoteList notes={filteredNotes} onDelete={deleteNote} onUpdate={updateNote}/>
     </div>
   );
 }
