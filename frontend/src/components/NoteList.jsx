@@ -3,7 +3,7 @@ import NoteCard from "./NoteCard";
 
 
 
-function NoteList({ notes, onDelete }) {
+function NoteList({ notes, onDelete, onEdit }) {
   if (notes.length === 0) {
     return <p>No algorithm notes yet. Add some!</p>;
   }
@@ -11,7 +11,7 @@ function NoteList({ notes, onDelete }) {
   return (
     <div className="note-list">
       {notes.map((note) => (
-        <NoteCard key={note._id} note={note} onDelete={onDelete} />
+        <NoteCard key={note._id} note={note} onDelete={onDelete} onEdit={onEdit}/>
       ))}
     </div>
   );
