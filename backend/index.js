@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({
   origin: 'https://know-your-algos.vercel.app',
-  methods: ['GET', 'POST', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT','DELETE'],
   credentials: true
 
   // origin: [ 'https://know-your-algos.vercel.app'/*, 'http://localhost:3000', 'http://localhost:3001'*/ ],
