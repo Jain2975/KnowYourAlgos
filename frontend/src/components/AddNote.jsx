@@ -5,6 +5,7 @@ function AddNote({ onAdd }) {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [useCases, setUseCases] = useState("");
+  const [code, setCode] = useState(""); 
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,15 +15,16 @@ function AddNote({ onAdd }) {
       category,
       description,
       useCases,
+      code, 
     };
 
-    onAdd(newNote); // ID will be added in App.jsx
+    onAdd(newNote);
 
-    // Clear the form
     setName("");
     setCategory("");
     setDescription("");
     setUseCases("");
+    setCode(""); 
   };
 
   return (
@@ -34,6 +36,7 @@ function AddNote({ onAdd }) {
         onChange={(e) => setName(e.target.value)}
         required
       />
+
       <input
         type="text"
         placeholder="Category (e.g., Graph, DP)"
@@ -41,18 +44,29 @@ function AddNote({ onAdd }) {
         onChange={(e) => setCategory(e.target.value)}
         required
       />
+
       <textarea
         placeholder="Short Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         required
       />
+
       <textarea
         placeholder="Use Cases / Where it’s used"
         value={useCases}
         onChange={(e) => setUseCases(e.target.value)}
         required
       />
+
+      
+      <textarea
+        placeholder="Paste algorithm code here..."
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        style={{ fontFamily: "monospace", minHeight: "130px" }}
+      />
+
       <button type="submit">➕ Add Note</button>
     </form>
   );
