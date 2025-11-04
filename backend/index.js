@@ -42,6 +42,7 @@ const UserSchema=new mongoose.Schema({
   username: {type: String,required: true },
   email: {type: String , required: true,unique: true},
   password: {type: String, required: true}
+  
 },{timestamps: true});
 
 const noteSchema = new mongoose.Schema(
@@ -51,6 +52,7 @@ const noteSchema = new mongoose.Schema(
     category: { type: String, required: true },
     description: String,
     useCases: String,
+    code: { type: String, default: "" }
   },
   { timestamps: true }
 );
@@ -167,11 +169,11 @@ app.get("/algos/notes", auth, async (req, res) => {
 //Post note
 app.post("/algos/notes", auth, async (req, res) => {
   try {
-    const { name, category, description, useCases } = req.body;
+    const { name, category, description, useCases, code } = req.body;
     if (!name || !category)
       return res.status(400).json({ message: "Missing fields" });
 
-    const note = new Note({ userId: req.userId, name, category, description, useCases });
+    const note = new Note({ userId: req.userId, name, category, description, useCases, code });
     await note.save();
     res.status(201).json(note);
   } catch {
@@ -199,7 +201,7 @@ app.put("/algos/:id", auth, async (req, res) => {
 
     const updatedNote = await Note.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
-      { name, category, description, useCases },
+      { name, category, description, useCases, code },
       { new: true, runValidators: true }
     );
 
