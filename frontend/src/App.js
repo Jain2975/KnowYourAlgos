@@ -127,7 +127,17 @@ function App() {
   );
 
   
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+  return (
+    <div className="skeleton-page">
+      <div className="skeleton skeleton-title"></div>
+      <div className="skeleton skeleton-line"></div>
+      <div className="skeleton skeleton-line"></div>
+      <div className="skeleton skeleton-box"></div>
+    </div>
+  );
+}
+
 
   if (!user) {
     return (
