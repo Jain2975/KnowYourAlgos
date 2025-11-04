@@ -129,14 +129,22 @@ function App() {
   
   if (loading) {
   return (
-    <div className="skeleton-page">
+    <div className="app-skeleton">
       <div className="skeleton skeleton-title"></div>
-      <div className="skeleton skeleton-line"></div>
-      <div className="skeleton skeleton-line"></div>
-      <div className="skeleton skeleton-box"></div>
+
+      <div className="skeleton skeleton-input"></div>
+      <div className="skeleton skeleton-input"></div>
+      <div className="skeleton skeleton-button"></div>
+
+      <div className="skeleton-note-card">
+        <div className="skeleton skeleton-note-title"></div>
+        <div className="skeleton skeleton-note-line"></div>
+        <div className="skeleton skeleton-note-line small"></div>
+      </div>
     </div>
   );
 }
+
 
 
   if (!user) {
