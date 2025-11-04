@@ -23,7 +23,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT','DELETE'],
   credentials: true
 
-  // origin: [ 'https://know-your-algos.vercel.app'/*, 'http://localhost:3000', 'http://localhost:3001'*/ ],
+  // origin: [ 'https://know-your-algos.vercel.app', 'http://localhost:3000', 'http://localhost:3001'],
   // methods: ['GET', 'POST', 'DELETE'],
   // credentials: true
 }));
@@ -35,6 +35,7 @@ mongoose.connect(process.env.MONGO_URI,{
   tlsAllowInvalidCertificates: false, // strict validation
   serverSelectionTimeoutMS: 10000
 })
+// mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error(err));
 
@@ -52,6 +53,7 @@ const noteSchema = new mongoose.Schema(
     category: { type: String, required: true },
     description: String,
     useCases: String,
+    language: { type: String, default: "" },
     code: { type: String, default: "" }
   },
   { timestamps: true }
@@ -169,11 +171,11 @@ app.get("/algos/notes", auth, async (req, res) => {
 //Post note
 app.post("/algos/notes", auth, async (req, res) => {
   try {
-    const { name, category, description, useCases, code } = req.body;
+    const { name, category, description, useCases,language, code } = req.body;
     if (!name || !category)
       return res.status(400).json({ message: "Missing fields" });
 
-    const note = new Note({ userId: req.userId, name, category, description, useCases, code });
+    const note = new Note({ userId: req.userId, name, category, description, useCases, language, code });
     await note.save();
     res.status(201).json(note);
   } catch {
@@ -194,14 +196,14 @@ app.delete("/algos/:id", auth, async (req, res) => {
   }
 });
 //Update Note
-// Update Note
+
 app.put("/algos/:id", auth, async (req, res) => {
   try {
-    const { name, category, description, useCases } = req.body;
+    const { name, category, description, useCases, language, code } = req.body;
 
     const updatedNote = await Note.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
-      { name, category, description, useCases, code },
+      { name, category, description, useCases, language, code },
       { new: true, runValidators: true }
     );
 
@@ -279,20 +281,45 @@ app.get("/algos/pdf", auth, async (req, res) => {
           <h1>KnowYourAlgos - Quick Revision Notes</h1>
           <h3>Generated for ${user.username}</h3>
           ${notes
-            .map(
-              (n, i) => `
-                <div class="note">
-                  <h2>${i + 1}. ${n.name}</h2>
-                  <div class="label">Category:</div>
-                  <div class="value">${n.category}</div>
-                  <div class="label">Description:</div>
-                  <div class="value">${n.description || "—"}</div>
-                  <div class="label">Use Cases:</div>
-                  <div class="value">${n.useCases || "—"}</div>
-                </div>
-              `
-            )
-            .join("")}
+  .map(
+    (n, i) => `
+      <div class="note">
+        <h2>${i + 1}. ${n.name}</h2>
+        
+        <div class="label">Category:</div>
+        <div class="value">${n.category}</div>
+
+        <div class="label">Language:</div>
+        <div class="value">${n.language?.toUpperCase() || "—"}</div>
+
+        <div class="label">Description:</div>
+        <div class="value">${n.description || "—"}</div>
+
+        <div class="label">Use Cases:</div>
+        <div class="value">${n.useCases || "—"}</div>
+
+        ${
+          n.code
+            ? `
+              <div class="label">Code:</div>
+              <pre style="
+                background:#f4f4f4;
+                padding:12px;
+                border-radius:6px;
+                font-size:12px;
+                overflow-x:auto;
+                border:1px solid #ddd;
+              ">
+${n.code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+              </pre>
+            `
+            : ""
+        }
+      </div>
+    `
+  )
+  .join("")}
+
           <footer>Generated on ${new Date().toLocaleDateString()} © KnowYourAlgos</footer>
         </body>
       </html>

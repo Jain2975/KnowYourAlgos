@@ -143,3 +143,17 @@ button:hover {
   width: 70%;
 }
 
+select {
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 3px #3498db;
+}

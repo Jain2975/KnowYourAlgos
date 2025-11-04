@@ -5,6 +5,7 @@ function AddNote({ onAdd }) {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [useCases, setUseCases] = useState("");
+  const [language, setLanguage] = useState("javascript");
   const [code, setCode] = useState(""); 
 
   const handleSubmit = (e) => {
@@ -15,7 +16,8 @@ function AddNote({ onAdd }) {
       category,
       description,
       useCases,
-      code, 
+      language,
+      code,
     };
 
     onAdd(newNote);
@@ -59,7 +61,14 @@ function AddNote({ onAdd }) {
         required
       />
 
-      
+      <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="cpp">C++</option>
+        <option value="c">C</option>
+        <option value="java">Java</option>
+      </select>
+
       <textarea
         placeholder="Paste algorithm code here..."
         value={code}

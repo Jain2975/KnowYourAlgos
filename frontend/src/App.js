@@ -3,7 +3,7 @@ import AddNote from "./components/AddNote.jsx";
 import NoteList from "./components/NoteList.jsx";
 import "./styles.css";
 
-const API_BASE="https://knowyouralgos.onrender.com";
+ const API_BASE="https://knowyouralgos.onrender.com";
 // const API_BASE="http://localhost:3000"
 
 function App() {

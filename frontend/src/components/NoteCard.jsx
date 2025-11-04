@@ -12,18 +12,16 @@ import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 
-// Prism imports
+// PrismJS imports
 import Prism from "prismjs";
-import "prismjs/themes/prism-tomorrow.css";          // VS Code dark theme
+import "prismjs/themes/prism-tomorrow.css";
 import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-python";
 import "prismjs/components/prism-c";
 import "prismjs/components/prism-cpp";
 import "prismjs/components/prism-java";
-import "prismjs/components/prism-python";
-
-// Optional line numbers
-import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 import "prismjs/plugins/line-numbers/prism-line-numbers";
+import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 
 function NoteCard({ note, onDelete, onEdit }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -33,13 +31,13 @@ function NoteCard({ note, onDelete, onEdit }) {
     description: note.description,
     useCases: note.useCases,
     language: note.language || "javascript",
-    codeSnippet: note.codeSnippet || "",
+    code: note.code || "",
   });
 
   // Highlight Prism after render/update
   useEffect(() => {
     Prism.highlightAll();
-  }, [isEditing, note.codeSnippet, editedNote.codeSnippet]);
+  }, [isEditing, note.code, editedNote.code]);
 
   const handleSave = () => {
     onEdit(note._id, editedNote);
@@ -52,7 +50,7 @@ function NoteCard({ note, onDelete, onEdit }) {
         <Typography>
           {note.name}{" "}
           <small style={{ marginLeft: 8, color: "#888" }}>
-            ({note.category}) • {note.language?.toUpperCase() || "JS"}
+            ({note.category}) • {note.language?.toUpperCase()}
           </small>
         </Typography>
       </AccordionSummary>
@@ -76,7 +74,6 @@ function NoteCard({ note, onDelete, onEdit }) {
               }
               fullWidth
             />
-
             <TextField
               label="Description"
               value={editedNote.description}
@@ -87,7 +84,6 @@ function NoteCard({ note, onDelete, onEdit }) {
               rows={3}
               fullWidth
             />
-
             <TextField
               label="Use Cases"
               value={editedNote.useCases}
@@ -97,7 +93,6 @@ function NoteCard({ note, onDelete, onEdit }) {
               fullWidth
             />
 
-            {/* ✅ Language Dropdown */}
             <FormControl fullWidth>
               <InputLabel>Language</InputLabel>
               <Select
@@ -115,15 +110,14 @@ function NoteCard({ note, onDelete, onEdit }) {
               </Select>
             </FormControl>
 
-            {/* Code input */}
             <TextField
-              label="Code Snippet"
-              value={editedNote.codeSnippet}
+              label="Code"
+              value={editedNote.code}
               onChange={(e) =>
-                setEditedNote({ ...editedNote, codeSnippet: e.target.value })
+                setEditedNote({ ...editedNote, code: e.target.value })
               }
               multiline
-              rows={5}
+              rows={6}
               fullWidth
             />
 
@@ -149,11 +143,10 @@ function NoteCard({ note, onDelete, onEdit }) {
               <strong>Use Cases:</strong> {note.useCases}
             </Typography>
 
-            {/* ✅ Prism Code View */}
-            {note.codeSnippet && (
+            {note.code && (
               <pre className="line-numbers" style={{ marginTop: "15px" }}>
                 <code className={`language-${note.language}`}>
-                  {note.codeSnippet}
+                  {note.code}
                 </code>
               </pre>
             )}
@@ -162,7 +155,11 @@ function NoteCard({ note, onDelete, onEdit }) {
               <Button variant="contained" onClick={() => setIsEditing(true)}>
                 Edit
               </Button>
-              <Button variant="contained" color="error" onClick={() => onDelete(note._id)}>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => onDelete(note._id)}
+              >
                 Delete
               </Button>
             </Stack>
