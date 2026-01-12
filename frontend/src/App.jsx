@@ -206,7 +206,8 @@ function App() {
     <div className={`App ${isChatOpen ? "shifted" : ""}`}>
       <h1>🧠 Know Your Algorithms</h1>
       <p className="welcome">Welcome, {user.username}!
-       <button onClick={logout} style={{ marginLeft: "75px" }}>Logout</button>
+        <br/>
+       <button onClick={logout} >Logout</button>
        <button onClick={downloadNotes} style={{ marginLeft: "10px" }}>Download All Notes</button>
        </p>
 
