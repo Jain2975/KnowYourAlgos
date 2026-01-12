@@ -19,26 +19,42 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: 'https://know-your-algos.vercel.app',
+  origin: process.env.CLIENT_URL,
   methods: ['GET', 'POST', 'PUT','DELETE'],
-  credentials: true
-
-  // origin: [ 'https://know-your-algos.vercel.app', 'http://localhost:3000', 'http://localhost:3001'],
-  // methods: ['GET', 'POST', 'DELETE'],
-  // credentials: true
+  credentials: true 
 }));
+
+//Below is for local testing
+
+// app.use(cors({
+//   origin: 'http://localhost:5173',
+//   methods: ['GET', 'POST', 'DELETE', 'PUT'],
+//   credentials: true
+// }))
 
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI,{
-  ssl: true,                       // force TLS/SSL
-  tlsAllowInvalidCertificates: false, // strict validation
+  ssl: true,                       
+  tlsAllowInvalidCertificates: false, 
   serverSelectionTimeoutMS: 10000
 })
 // mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error(err));
 
+
+//Below is for local testing
+
+// mongoose.connect(process.env.MONGO_URI,{
+//   ssl: true,                       
+  
+// })
+// // mongoose.connect(process.env.MONGO_URI)
+//   .then(() => console.log("MongoDB connected"))
+//   .catch(err => console.error(err));
+
+//Models
 const UserSchema=new mongoose.Schema({
   username: {type: String,required: true },
   email: {type: String , required: true,unique: true},
@@ -54,7 +70,8 @@ const noteSchema = new mongoose.Schema(
     description: String,
     useCases: String,
     language: { type: String, default: "" },
-    code: { type: String, default: "" }
+    code: { type: String, default: "" },
+    order: { type: Number, default: 0 }
   },
   { timestamps: true }
 );
@@ -162,7 +179,7 @@ app.get("/auth/me", async (req, res) => {
 // ---- Notes Routes (protected) ----
 app.get("/algos/notes", auth, async (req, res) => {
   try {
-    const notes = await Note.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const notes = await Note.find({ userId: req.userId }).sort({ order:1 });
     res.json(notes);
   } catch {
     res.status(500).json({ message: "Server error" });
@@ -175,7 +192,9 @@ app.post("/algos/notes", auth, async (req, res) => {
     if (!name || !category)
       return res.status(400).json({ message: "Missing fields" });
 
-    const note = new Note({ userId: req.userId, name, category, description, useCases, language, code });
+    const count = await Note.countDocuments({ userId: req.userId });
+
+    const note = new Note({ userId: req.userId, name, category, description, useCases, language, code,order: count });
     await note.save();
     res.status(201).json(note);
   } catch {
@@ -217,6 +236,33 @@ app.put("/algos/:id", auth, async (req, res) => {
     res.status(500).json({ message: "Failed to update note" });
   }
 });
+
+//Reorder Notes
+app.put("/algos/notes/reorder", auth, async (req, res) => {
+  try {
+    const { orderedIds } = req.body; 
+
+    if (!Array.isArray(orderedIds)) {
+      return res.status(400).json({ message: "orderedIds must be an array" });
+    }
+
+    // Update each note's order
+    for (let i = 0; i < orderedIds.length; i++) {
+      const id = orderedIds[i];
+      await Note.findOneAndUpdate(  
+        { _id: id, userId: req.userId },
+        { order: i }
+      );
+    }
+
+
+    res.json({ message: "Order saved" });
+  } catch (err) {
+    console.error("Error saving order:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 //Download Notes
 app.get("/algos/pdf", auth, async (req, res) => {

@@ -9,7 +9,34 @@ body {
 .App {
   max-width: 600px;
   margin: 0 auto;
+  transition: margin-right 0.4s ease;
 }
+
+.App.shifted{
+  margin-right: 360px; /* Width of the chat panel */
+}
+
+/* Welcome section */
+.welcome {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 40px 20px 20px 20px;
+  transition: margin-right 0.4s ease; /* optional, for Option 1 push */
+}
+
+/* If main content shifts (Option 1) */
+
+
+/* Optional responsive tweaks */
+@media (max-width: 768px) {
+  .welcome {
+    font-size: 1.6rem;
+    margin: 30px 15px 15px 15px;
+  }
+}
+
 
 h1 {
   text-align: center;
@@ -156,4 +183,139 @@ select:focus {
   outline: none;
   border-color: #3498db;
   box-shadow: 0 0 3px #3498db;
+}
+
+
+/* Chat Panel Styles */
+
+
+
+/* Chat panel */
+.chat-panel {
+  position: fixed;
+  top: 10%;
+  right: -340px; /* hidden off-screen initially */
+  width: 320px;
+  height: 80%;
+  background: #ffffff;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.25);
+  padding: 20px;
+  transition: right 0.4s ease, box-shadow 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+  border-left: 1px solid #eee;
+  border-radius: 8px 0 0 8px;
+  overflow: hidden;
+}
+
+/* Chat panel open */
+.chat-panel.open {
+  right: 0;
+}
+
+/* Floating toggle button */
+.chat-tab {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  width: 20px;
+  height: 70px;
+  border-radius: 10px 0 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: -2px 4px 12px rgba(0,0,0,0.3);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+/* Hover effect */
+.chat-tab:hover {
+  transform: translateY(-50%) scale(1.05);
+  background: linear-gradient(135deg, #2980b9, #3498db);
+}
+
+/* Arrow rotation */
+.arrow {
+  font-size: 22px;
+  transition: transform 0.3s ease;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Chat messages area */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f0f4f8;
+  margin-bottom: 10px;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar styling for modern look */
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+.chat-messages::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 8px;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #3498db;
+  border-radius: 8px;
+}
+
+/* Chat input */
+.chat-input {
+  display: flex;
+  gap: 8px;
+}
+.chat-input input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+.chat-input input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+}
+
+/* Send button */
+.chat-input button {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.chat-input button:hover {
+  background: #2980b9;
+  transform: scale(1.05);
+}
+
+/* Optional: subtle entrance animation */
+.chat-panel.open {
+  animation: slideIn 0.4s ease forwards;
+}
+
+@keyframes slideIn {
+  0% { right: -320px; opacity: 0; }
+  100% { right: 0; opacity: 1; }
 }

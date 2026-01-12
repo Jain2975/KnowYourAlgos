@@ -3,15 +3,15 @@ import AddNote from "./components/AddNote.jsx";
 import NoteList from "./components/NoteList.jsx";
 import "./styles.css";
 
-const API_BASE=import.meta.env.VITE_API_URL;
-
+//const API_BASE=import.meta.env.VITE_API_URL;
+const API_BASE="http://localhost:3000";
 function App() {
   const [notes, setNotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [user, setUser] = useState(null);
   const [authMode, setAuthMode] = useState("login");
   const [loading, setLoading] = useState(true);
-
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   useEffect(() => {
     fetch(`${API_BASE}/auth/me`, { credentials: "include" })
@@ -125,7 +125,10 @@ function App() {
     `${note.name} ${note.category}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  
+  const toggleChat= () =>{
+    setIsChatOpen(!isChatOpen);
+  }
+
   if (loading) {
   return (
     <div className="app-skeleton">
@@ -200,10 +203,10 @@ function App() {
     }
   }
   return (
-    <div className="App">
+    <div className={`App ${isChatOpen ? "shifted" : ""}`}>
       <h1>🧠 Know Your Algorithms</h1>
-      <p>Welcome, {user.username}!
-       <button onClick={logout}>Logout</button>
+      <p className="welcome">Welcome, {user.username}!
+       <button onClick={logout} style={{ marginLeft: "75px" }}>Logout</button>
        <button onClick={downloadNotes} style={{ marginLeft: "10px" }}>Download All Notes</button>
        </p>
 
@@ -224,7 +227,33 @@ function App() {
         }}
       />
 
-      <NoteList notes={filteredNotes} onDelete={deleteNote} onEdit={updateNote}/>
+      <NoteList notes={filteredNotes} setNotes={setNotes} onDelete={deleteNote} onEdit={updateNote}/>
+
+           
+<div className="chat-tab" onClick={toggleChat}>
+  <div className={`arrow ${isChatOpen ? "open" : ""}`}>&#9654;</div>
+</div>
+
+      
+      <div className={`chat-panel ${isChatOpen ? "open" : ""}`}>
+        <h3>Global Chat</h3>
+        <div className="chat-messages">
+          <p><em>Chat messages will appear here...</em></p>
+        </div>
+
+        
+        <div className="chat-input">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            
+          />
+          
+          <button >Send</button>
+        </div>
+      </div>
+
+
     </div>
   );
 }

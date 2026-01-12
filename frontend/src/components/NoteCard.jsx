@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef} from "react";
+
+
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -23,7 +25,11 @@ import "prismjs/components/prism-java";
 import "prismjs/plugins/line-numbers/prism-line-numbers";
 import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 
-function NoteCard({ note, onDelete, onEdit }) {
+//Drag and Drop
+import {useDrag,useDrop} from 'react-dnd';
+
+function NoteCard({ note,index, onDelete, onEdit,onReorder }) {
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedNote, setEditedNote] = useState({
     name: note.name,
@@ -44,129 +50,153 @@ function NoteCard({ note, onDelete, onEdit }) {
     setIsEditing(false);
   };
 
+  //Drag and Drop
+
+  const ref=useRef (null);
+
+  const [{isDragging},drag]=useDrag(()=>({
+    type:"NOTE",
+    item:{id: note._id,index} ,
+    collect : (monitor)=>({ isDragging: monitor.isDragging() }),
+  }),[index,note._id]);
+
+  const[,drop] = useDrop({
+    accept:'NOTE',
+    hover: (item) =>{  
+      if(item.index !==index){
+        onReorder(item.index,index);
+        item.index=index; 
+      }
+    }
+  });
+
+  drag(drop(ref));
+
   return (
-    <Accordion sx={{ marginBottom: "10px" }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>
-          {note.name}{" "}
-          <small style={{ marginLeft: 8, color: "#888" }}>
-            ({note.category}) • {note.language?.toUpperCase()}
-          </small>
-        </Typography>
-      </AccordionSummary>
+    <div ref={ref} sx={{ opacity: isDragging ? 0.5 : 1, cursor: 'move' }}>
+      <Accordion sx={{ marginBottom: "10px" }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>
+            {note.name}{" "}
+            <small style={{ marginLeft: 8, color: "#888" }}>
+              ({note.category}) • {note.language?.toUpperCase()}
+            </small>
+          </Typography>
+        </AccordionSummary>
 
-      <AccordionDetails>
-        {isEditing ? (
-          <Stack spacing={2}>
-            <TextField
-              label="Name"
-              value={editedNote.name}
-              onChange={(e) =>
-                setEditedNote({ ...editedNote, name: e.target.value })
-              }
-              fullWidth
-            />
-            <TextField
-              label="Category"
-              value={editedNote.category}
-              onChange={(e) =>
-                setEditedNote({ ...editedNote, category: e.target.value })
-              }
-              fullWidth
-            />
-            <TextField
-              label="Description"
-              value={editedNote.description}
-              onChange={(e) =>
-                setEditedNote({ ...editedNote, description: e.target.value })
-              }
-              multiline
-              rows={3}
-              fullWidth
-            />
-            <TextField
-              label="Use Cases"
-              value={editedNote.useCases}
-              onChange={(e) =>
-                setEditedNote({ ...editedNote, useCases: e.target.value })
-              }
-              fullWidth
-            />
-
-            <FormControl fullWidth>
-              <InputLabel>Language</InputLabel>
-              <Select
-                value={editedNote.language}
-                label="Language"
+        <AccordionDetails>
+          {isEditing ? (
+            <Stack spacing={2}>
+              <TextField
+                label="Name"
+                value={editedNote.name}
                 onChange={(e) =>
-                  setEditedNote({ ...editedNote, language: e.target.value })
+                  setEditedNote({ ...editedNote, name: e.target.value })
                 }
-              >
-                <MenuItem value="javascript">JavaScript</MenuItem>
-                <MenuItem value="python">Python</MenuItem>
-                <MenuItem value="cpp">C++</MenuItem>
-                <MenuItem value="c">C</MenuItem>
-                <MenuItem value="java">Java</MenuItem>
-              </Select>
-            </FormControl>
+                fullWidth
+              />
+              <TextField
+                label="Category"
+                value={editedNote.category}
+                onChange={(e) =>
+                  setEditedNote({ ...editedNote, category: e.target.value })
+                }
+                fullWidth
+              />
+              <TextField
+                label="Description"
+                value={editedNote.description}
+                onChange={(e) =>
+                  setEditedNote({ ...editedNote, description: e.target.value })
+                }
+                multiline
+                rows={3}
+                fullWidth
+              />
+              <TextField
+                label="Use Cases"
+                value={editedNote.useCases}
+                onChange={(e) =>
+                  setEditedNote({ ...editedNote, useCases: e.target.value })
+                }
+                fullWidth
+              />
 
-            <TextField
-              label="Code"
-              value={editedNote.code}
-              onChange={(e) =>
-                setEditedNote({ ...editedNote, code: e.target.value })
-              }
-              multiline
-              rows={6}
-              fullWidth
-            />
+              <FormControl fullWidth>
+                <InputLabel>Language</InputLabel>
+                <Select
+                  value={editedNote.language}
+                  label="Language"
+                  onChange={(e) =>
+                    setEditedNote({ ...editedNote, language: e.target.value })
+                  }
+                >
+                  <MenuItem value="javascript">JavaScript</MenuItem>
+                  <MenuItem value="python">Python</MenuItem>
+                  <MenuItem value="cpp">C++</MenuItem>
+                  <MenuItem value="c">C</MenuItem>
+                  <MenuItem value="java">Java</MenuItem>
+                </Select>
+              </FormControl>
 
-            <Stack direction="row" spacing={2}>
-              <Button variant="contained" color="success" onClick={handleSave}>
-                Save
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => setIsEditing(false)}
-              >
-                Cancel
-              </Button>
+              <TextField
+                label="Code"
+                value={editedNote.code}
+                onChange={(e) =>
+                  setEditedNote({ ...editedNote, code: e.target.value })
+                }
+                multiline
+                rows={6}
+                fullWidth
+              />
+
+              <Stack direction="row" spacing={2}>
+                <Button variant="contained" color="success" onClick={handleSave}>
+                  Save
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </Button>
+              </Stack>
             </Stack>
-          </Stack>
-        ) : (
-          <>
-            <Typography>
-              <strong>Description:</strong> {note.description}
-            </Typography>
-            <Typography>
-              <strong>Use Cases:</strong> {note.useCases}
-            </Typography>
+          ) : (
+            <>
+              <Typography>
+                <strong>Description:</strong> {note.description}
+              </Typography>
+              <Typography>
+                <strong>Use Cases:</strong> {note.useCases}
+              </Typography>
 
-            {note.code && (
-              <pre className="line-numbers" style={{ marginTop: "15px" }}>
-                <code className={`language-${note.language}`}>
-                  {note.code}
-                </code>
-              </pre>
-            )}
+              {note.code && (
+                <pre className="line-numbers" style={{ marginTop: "15px" }}>
+                  <code className={`language-${note.language}`}>
+                    {note.code}
+                  </code>
+                </pre>
+              )}
 
-            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-              <Button variant="contained" onClick={() => setIsEditing(true)}>
-                Edit
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => onDelete(note._id)}
-              >
-                Delete
-              </Button>
-            </Stack>
-          </>
-        )}
-      </AccordionDetails>
-    </Accordion>
+              <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                <Button variant="contained" onClick={() => setIsEditing(true)}>
+                  Edit
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => onDelete(note._id)}
+                >
+                  Delete
+                </Button>
+              </Stack>
+            </>
+          )}
+        </AccordionDetails>
+      </Accordion>
+    </div>
   );
 }
 
