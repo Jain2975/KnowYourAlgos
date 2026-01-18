@@ -7,14 +7,16 @@ Whether you’re preparing for interviews, competitive programming, or just want
 
 ## ✨ Features
 
-🧩 Add Algorithm Notes — Save details like name, category, short description, and where it’s used.
+ Add Algorithm Notes — Save details like name, category, short description, and where it’s used.
 
-💾 Download as PDF — Instantly export your algorithm notes into a neatly formatted PDF file.
+ Download as PDF — Instantly export your algorithm notes into a neatly formatted PDF file.
 
-🗂️ Organized View — Displays all your notes in a simple, easy-to-read list.
+ Organized View — Displays all your notes in a simple, easy-to-read list.
 
-✏️ Update or Delete Notes — Manage your collection effortlessly.
+ Update or Delete Notes — Manage your collection effortlessly.
 
-💾 Persistent Storage — All notes are stored securely in the MongoDB database.
+ Persistent Storage — All notes are stored securely in the MongoDB database.
 
-🎨 Clean UI — Built with React and MaterialUI for a smooth, responsive interface.
+ Clean UI — Built with React and MaterialUI for a smooth, responsive interface.
+
+ Chat- Now Includes Global Chat (currently limited to top 50 chats and 200 character limit).
