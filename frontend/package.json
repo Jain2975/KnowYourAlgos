@@ -18,7 +18,8 @@
     "react": "^19.2.3",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import AddNote from "./components/AddNote.jsx";
 import NoteList from "./components/NoteList.jsx";
 import "./styles.css";
+import {io} from "socket.io-client";
 
 const API_BASE=import.meta.env.VITE_API_URL;
 
@@ -11,8 +12,13 @@ function App() {
   const [user, setUser] = useState(null);
   const [authMode, setAuthMode] = useState("login");
   const [loading, setLoading] = useState(true);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   
+  //Globat Chat States
+  const socketRef = useRef(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+
   useEffect(() => {
     fetch(`${API_BASE}/auth/me`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
@@ -125,9 +131,76 @@ function App() {
     `${note.name} ${note.category}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const toggleChat= () =>{
-    setIsChatOpen(!isChatOpen);
+  
+
+  //Websockets and Global Chat '
+  function toggleChat() {
+  if (isChatOpen) closeChat();
+  else openChat();
+}
+async function openChat() {
+  setIsChatOpen(true);
+
+  setMessages([]); // Clear previous messages
+  // 1. Create socket first (if not already created)
+  if (!socketRef.current) {
+    const socket = io(API_BASE, { withCredentials: true });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("Connected to chat:", socket.id);
+    });
+
+    socket.on("chatMessage", (msg) => {
+      setMessages(prev=>{
+        const updated=[...prev,msg];
+        return updated.length > 50 ? updated.slice(-50) : updated;
+      })
+    });
   }
+
+  // 2. THEN load chat history
+  try {
+    const resp = await fetch(`${API_BASE}/chat/history`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      setMessages(data);
+    }
+  } catch (err) {
+    console.log("Error fetching chat history:", err);
+  }
+}
+
+
+function closeChat() {
+  setIsChatOpen(false);
+
+  if (socketRef.current) {
+    socketRef.current.disconnect();
+    socketRef.current = null;
+  }
+}
+
+function sendMessage() {
+  if (!chatInput.trim() || !socketRef.current) return;
+
+  if(chatInput.length>200){
+    alert("Message too long! Please limit to 200 characters.");
+    return;
+  }
+  
+  socketRef.current.emit("chatMessage", {
+    user: user.username,
+    text: chatInput,
+    time: new Date().toISOString(),
+  });
+
+  setChatInput("");
+}
 
   if (loading) {
   return (
@@ -238,19 +311,31 @@ function App() {
       
       <div className={`chat-panel ${isChatOpen ? "open" : ""}`}>
         <h3>Global Chat</h3>
+
         <div className="chat-messages">
-          <p><em>Chat messages will appear here...</em></p>
+          {messages.length === 0 ? (
+            <p><em>No messages yet...</em></p>
+          ) : (
+            messages.map((msg, i) => (
+              <div key={i} className="chat-message">
+                <strong>{msg.user}:</strong> {msg.text}
+              </div>
+            ))
+          )}
         </div>
+
 
         
         <div className="chat-input">
           <input
             type="text"
             placeholder="Type a message..."
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
             
           />
           
-          <button >Send</button>
+          <button onClick={sendMessage}>Send</button>
         </div>
       </div>
 

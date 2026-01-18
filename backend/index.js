@@ -8,6 +8,9 @@ import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import pdf from "html-pdf-node";
+import { Server } from "socket.io";
+import http from "http";
+import { reverse } from 'dns';
 
 dotenv.config();
 
@@ -18,19 +21,21 @@ const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
 
+const server=http.createServer(app);
+
+const io=new Server(server,{
+  cors:{
+    origin: process.env.CLIENT_URL,
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+})
+
 app.use(cors({
   origin: process.env.CLIENT_URL,
   methods: ['GET', 'POST', 'PUT','DELETE'],
   credentials: true 
 }));
-
-//Below is for local testing
-
-// app.use(cors({
-//   origin: 'http://localhost:5173',
-//   methods: ['GET', 'POST', 'DELETE', 'PUT'],
-//   credentials: true
-// }))
 
 app.use(express.json());
 
@@ -47,7 +52,7 @@ mongoose.connect(process.env.MONGO_URI,{
 //Below is for local testing
 
 // mongoose.connect(process.env.MONGO_URI,{
-//   ssl: true,                       
+//   //ssl: true,                       
   
 // })
 // // mongoose.connect(process.env.MONGO_URI)
@@ -58,8 +63,7 @@ mongoose.connect(process.env.MONGO_URI,{
 const UserSchema=new mongoose.Schema({
   username: {type: String,required: true },
   email: {type: String , required: true,unique: true},
-  password: {type: String, required: true}
-  
+  password: {type: String, required: true}  
 },{timestamps: true});
 
 const noteSchema = new mongoose.Schema(
@@ -76,6 +80,13 @@ const noteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const chatMessageSchema = new mongoose.Schema({
+  user: { type: String, required: true },
+  text: { type: String, required: true, maxlength: 200 },
+  time: { type: Date, default: Date.now }
+});
+
+const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
 const User = mongoose.model("User", UserSchema);
 const Note = mongoose.model("Note", noteSchema);
 
@@ -390,6 +401,62 @@ ${n.code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
 });
 
 
-app.listen(PORT, () => {
+//Chat Setup
+
+app.get("/chat/history", auth, async (req, res) => {
+  try {
+    const messages = await ChatMessage.find()
+      .sort({ time: -1 })        
+      .limit(50)
+      .lean();
+
+    res.json(messages.reverse()); 
+  } catch (err) {
+    console.log("Error fetching chat history:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("chatMessage", async (msg) => {
+    try {
+      // 1. Validation
+      if (!msg || !msg.text || msg.text.trim().length === 0 || msg.text.length > 200) {
+        return;
+      }
+
+      // 2. Save message with timestamp 
+      const saved = await ChatMessage.create({
+        user: msg.user,
+        text: msg.text.trim(),
+        time: new Date(),          
+      });
+
+      // 3. Broadcast to all clients
+      io.emit("chatMessage", saved);
+
+      // 4. Keep only latest 50 messages
+      const ids = await ChatMessage.find()
+        .sort({ time: -1 })
+        .limit(50)
+        .distinct("_id");
+
+      await ChatMessage.deleteMany({ _id: { $nin: ids } });
+
+    } catch (err) {
+      console.error("Error handling chat message:", err);
+    }
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on http://localhost:${PORT}`);
+// });
