@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import toast, { Toaster } from "react-hot-toast";
 import AddNote from "./components/AddNote.jsx";
 import NoteList from "./components/NoteList.jsx";
 import "./styles.css";
@@ -97,7 +106,7 @@ function App() {
       const savedNote = await res.json();
       setNotes((prev) => [...prev, savedNote]);
     } catch (err) {
-      console.error(err);
+      toast.error("Failed to add note.");
     }
   };
 
@@ -117,7 +126,7 @@ function App() {
         prevNotes.map((note) => (note._id === id ? updatedNote : note)),
       );
     } catch (err) {
-      console.error("Error updating note:", err);
+      toast.error("Failed to update note.");
     }
   };
 
@@ -129,7 +138,7 @@ function App() {
       });
       setNotes((prevNotes) => prevNotes.filter((note) => note._id !== id));
     } catch (err) {
-      console.error(err);
+      toast.error("Failed to delete note.");
     }
   };
 
@@ -199,7 +208,7 @@ function App() {
     if (!chatInput.trim() || !socketRef.current) return;
 
     if (chatInput.length > 200) {
-      alert("Message too long! Please limit to 200 characters.");
+      toast.error("Message too long! Max 200 characters.");
       return;
     }
 
@@ -268,20 +277,21 @@ function App() {
 
       const tempElement = document.createElement("a");
       tempElement.href = url;
-      tempElement.download = "KnowYourAlgoes_Notes.pdf";
+      tempElement.download = "KnowYourAlgos_Notes.pdf";
       document.body.appendChild(tempElement);
 
       tempElement.click();
-      alert("Notes downloaded successfully!");
+      toast.success("Notes downloaded!");
       tempElement.remove();
 
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.log("Frontend error", err);
+      toast.error("Failed to generate PDF.");
     }
   };
   return (
     <div className={`App ${isChatOpen ? "shifted" : ""}`}>
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <div className="app-header">
         <div className="app-header-left">
           <h1 className="app-title">🧠 KnowYourAlgos</h1>
@@ -396,9 +406,12 @@ function AuthForm({ mode, onSubmit, switchMode }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       if (mode === "login") {
         await onSubmit(email, password);
@@ -406,50 +419,107 @@ function AuthForm({ mode, onSubmit, switchMode }) {
         await onSubmit(username, email, password);
       }
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>{mode === "login" ? "Login" : "Register"}</h2>
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        maxWidth: 400,
+        mx: "auto",
+        mt: 2,
+        p: 4,
+        borderRadius: 3,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+        background: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      <Typography variant="h5" fontWeight={700} textAlign="center" mb={1}>
+        {mode === "login" ? "Welcome back 👋" : "Create an account 🚀"}
+      </Typography>
+
       {mode === "register" && (
-        <input
-          type="text"
-          placeholder="Username"
+        <TextField
+          label="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          fullWidth
+          autoComplete="username"
         />
       )}
-      <input
+
+      <TextField
+        label="Email"
         type="email"
-        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        fullWidth
+        autoComplete="email"
       />
-      <input
-        type="password"
-        placeholder="Password"
+
+      <TextField
+        label="Password"
+        type={showPassword ? "text" : "password"}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        fullWidth
+        autoComplete={mode === "login" ? "current-password" : "new-password"}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setShowPassword((v) => !v)}
+                edge="end"
+                size="small"
+              >
+                {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
       />
-      <button type="submit">{mode === "login" ? "Login" : "Register"}</button>
-      <p style={{ marginTop: "10px" }}>
+
+      <Button
+        type="submit"
+        variant="contained"
+        fullWidth
+        size="large"
+        disabled={isSubmitting}
+        sx={{ mt: 1 }}
+      >
+        {isSubmitting
+          ? mode === "login"
+            ? "Logging in..."
+            : "Registering..."
+          : mode === "login"
+            ? "Login"
+            : "Register"}
+      </Button>
+
+      <Typography textAlign="center" fontSize="0.9rem" color="text.secondary">
         {mode === "login"
           ? "Don't have an account?"
           : "Already have an account?"}{" "}
-        <button
-          type="button"
+        <Box
+          component="span"
           onClick={switchMode}
-          style={{ background: "none", color: "#3498db", cursor: "pointer" }}
+          sx={{ color: "primary.main", cursor: "pointer", fontWeight: 600 }}
         >
           {mode === "login" ? "Register" : "Login"}
-        </button>
-      </p>
-    </form>
+        </Box>
+      </Typography>
+    </Box>
   );
 }
 

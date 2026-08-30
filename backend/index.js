@@ -1,9 +1,9 @@
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import mongoose from "mongoose";
-import cookieParser from 'cookie-parser';
+import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
@@ -11,82 +11,89 @@ import pdf from "html-pdf-node";
 import { Server } from "socket.io";
 import http from "http";
 
-
-
 dotenv.config();
 
-const app=express();
+const app = express();
 app.use(cookieParser());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
 
-const server=http.createServer(app);
+const server = http.createServer(app);
 
-const io=new Server(server,{
-  cors:{
+const io = new Server(server, {
+  cors: {
     origin: process.env.CLIENT_URL,
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
-})
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
-app.use(cors({
-  origin: process.env.CLIENT_URL,
-  methods: ['GET', 'POST', 'PUT','DELETE'],
-  credentials: true 
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 
-
 //Below is for deployment
 // mongoose.connect(process.env.MONGO_URI,{
-//   ssl: true,                       
-//   tlsAllowInvalidCertificates: false, 
+//   ssl: true,
+//   tlsAllowInvalidCertificates: false,
 //   serverSelectionTimeoutMS: 10000
 // })
 // // mongoose.connect(process.env.MONGO_URI)
 //   .then(() => console.log("MongoDB connected"))
 //   .catch(err => console.error(err));
 
-
 //Below is for local testing
 
-mongoose.connect(process.env.MONGO_URI,{
-  //ssl: true,                       
-  
-})
-// mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI, {
+    //ssl: true,
+  })
+  // mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error(err));
+  .catch((err) => console.error(err));
 
 //Models
-const UserSchema=new mongoose.Schema({
-  username: {type: String,required: true },
-  email: {type: String , required: true,unique: true},
-  password: {type: String, required: true}  
-},{timestamps: true});
+const UserSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+  },
+  { timestamps: true },
+);
 
 const noteSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     name: { type: String, required: true },
     category: { type: String, required: true },
     description: String,
     useCases: String,
+    timeComplexity: { type: String, default: "" },
+    spaceComplexity: { type: String, default: "" },
     language: { type: String, default: "" },
     code: { type: String, default: "" },
-    order: { type: Number, default: 0 }
+    order: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const chatMessageSchema = new mongoose.Schema({
   user: { type: String, required: true },
   text: { type: String, required: true, maxlength: 200 },
-  time: { type: Date, default: Date.now }
+  time: { type: Date, default: Date.now },
 });
 
 const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
@@ -122,10 +129,11 @@ app.post("/auth/register", async (req, res) => {
       return res.status(400).json({ message: "Missing fields" });
 
     const exists = await User.findOne({ email });
-    if (exists) return res.status(409).json({ message: "Email already in use" });
+    if (exists)
+      return res.status(409).json({ message: "Email already in use" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = new User({ username, email, password:passwordHash });
+    const user = new User({ username, email, password: passwordHash });
     await user.save();
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -149,7 +157,8 @@ app.post("/auth/login", async (req, res) => {
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid credentials" });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
@@ -193,7 +202,7 @@ app.get("/auth/me", async (req, res) => {
 // ---- Notes Routes (protected) ----
 app.get("/algos/notes", auth, async (req, res) => {
   try {
-    const notes = await Note.find({ userId: req.userId }).sort({ order:1 });
+    const notes = await Note.find({ userId: req.userId }).sort({ order: 1 });
     res.json(notes);
   } catch {
     res.status(500).json({ message: "Server error" });
@@ -202,13 +211,33 @@ app.get("/algos/notes", auth, async (req, res) => {
 //Post note
 app.post("/algos/notes", auth, async (req, res) => {
   try {
-    const { name, category, description, useCases,language, code } = req.body;
+    const {
+      name,
+      category,
+      description,
+      useCases,
+      timeComplexity,
+      spaceComplexity,
+      language,
+      code,
+    } = req.body;
     if (!name || !category)
       return res.status(400).json({ message: "Missing fields" });
 
     const count = await Note.countDocuments({ userId: req.userId });
 
-    const note = new Note({ userId: req.userId, name, category, description, useCases, language, code,order: count });
+    const note = new Note({
+      userId: req.userId,
+      name,
+      category,
+      description,
+      useCases,
+      timeComplexity,
+      spaceComplexity,
+      language,
+      code,
+      order: count,
+    });
     await note.save();
     res.status(201).json(note);
   } catch {
@@ -232,12 +261,30 @@ app.delete("/algos/:id", auth, async (req, res) => {
 
 app.put("/algos/:id", auth, async (req, res) => {
   try {
-    const { name, category, description, useCases, language, code } = req.body;
+    const {
+      name,
+      category,
+      description,
+      useCases,
+      timeComplexity,
+      spaceComplexity,
+      language,
+      code,
+    } = req.body;
 
     const updatedNote = await Note.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
-      { name, category, description, useCases, language, code },
-      { new: true, runValidators: true }
+      {
+        name,
+        category,
+        description,
+        useCases,
+        timeComplexity,
+        spaceComplexity,
+        language,
+        code,
+      },
+      { new: true, runValidators: true },
     );
 
     if (!updatedNote) {
@@ -254,7 +301,7 @@ app.put("/algos/:id", auth, async (req, res) => {
 //Reorder Notes
 app.put("/algos/notes/reorder", auth, async (req, res) => {
   try {
-    const { orderedIds } = req.body; 
+    const { orderedIds } = req.body;
 
     if (!Array.isArray(orderedIds)) {
       return res.status(400).json({ message: "orderedIds must be an array" });
@@ -263,12 +310,11 @@ app.put("/algos/notes/reorder", auth, async (req, res) => {
     // Update each note's order
     for (let i = 0; i < orderedIds.length; i++) {
       const id = orderedIds[i];
-      await Note.findOneAndUpdate(  
+      await Note.findOneAndUpdate(
         { _id: id, userId: req.userId },
-        { order: i }
+        { order: i },
       );
     }
-
 
     res.json({ message: "Order saved" });
   } catch (err) {
@@ -277,11 +323,12 @@ app.put("/algos/notes/reorder", auth, async (req, res) => {
   }
 });
 
-
 //Download Notes
 app.get("/algos/pdf", auth, async (req, res) => {
   try {
-    const notes = await Note.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const notes = await Note.find({ userId: req.userId }).sort({
+      createdAt: -1,
+    });
 
     if (notes.length === 0) {
       return res.status(404).json({ message: "No Notes found" });
@@ -329,6 +376,20 @@ app.get("/algos/pdf", auth, async (req, res) => {
               margin-bottom: 10px;
               line-height: 1.6;
             }
+            .complexity-badges {
+              display: flex;
+              gap: 12px;
+              margin-bottom: 10px;
+            }
+            .badge {
+              background: #e8f4fd;
+              color: #0a66c2;
+              border-radius: 4px;
+              padding: 2px 8px;
+              font-size: 12px;
+              font-weight: bold;
+              font-family: monospace;
+            }
             footer {
               text-align: center;
               font-size: 12px;
@@ -341,11 +402,11 @@ app.get("/algos/pdf", auth, async (req, res) => {
           <h1>KnowYourAlgos - Quick Revision Notes</h1>
           <h3>Generated for ${user.username}</h3>
           ${notes
-  .map(
-    (n, i) => `
+            .map(
+              (n, i) => `
       <div class="note">
         <h2>${i + 1}. ${n.name}</h2>
-        
+
         <div class="label">Category:</div>
         <div class="value">${n.category}</div>
 
@@ -357,6 +418,12 @@ app.get("/algos/pdf", auth, async (req, res) => {
 
         <div class="label">Use Cases:</div>
         <div class="value">${n.useCases || "—"}</div>
+
+        <div class="label">Time Complexity:</div>
+        <div class="value">${n.timeComplexity || "—"}</div>
+
+        <div class="label">Space Complexity:</div>
+        <div class="value">${n.spaceComplexity || "—"}</div>
 
         ${
           n.code
@@ -376,9 +443,9 @@ ${n.code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
             : ""
         }
       </div>
-    `
-  )
-  .join("")}
+    `,
+            )
+            .join("")}
 
           <footer>Generated on ${new Date().toLocaleDateString()} © KnowYourAlgos</footer>
         </body>
@@ -393,34 +460,30 @@ ${n.code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": 'attachment; filename="KnowYourAlgos_Notes.pdf"',
-      "Content-Length": pdfBuffer.length
+      "Content-Length": pdfBuffer.length,
     });
     res.send(pdfBuffer);
-
   } catch (err) {
     console.error("Cannot fetch notes properly", err);
     res.status(500).json({ message: "Failed to generate PDF" });
   }
 });
 
-
 //Chat Setup
 
 app.get("/chat/history", auth, async (req, res) => {
   try {
     const messages = await ChatMessage.find()
-      .sort({ time: -1 })        
+      .sort({ time: -1 })
       .limit(50)
       .lean();
 
-    res.json(messages.reverse()); 
+    res.json(messages.reverse());
   } catch (err) {
     console.log("Error fetching chat history:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
-
-
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
@@ -428,15 +491,20 @@ io.on("connection", (socket) => {
   socket.on("chatMessage", async (msg) => {
     try {
       // 1. Validation
-      if (!msg || !msg.text || msg.text.trim().length === 0 || msg.text.length > 200) {
+      if (
+        !msg ||
+        !msg.text ||
+        msg.text.trim().length === 0 ||
+        msg.text.length > 200
+      ) {
         return;
       }
 
-      // 2. Save message with timestamp 
+      // 2. Save message with timestamp
       const saved = await ChatMessage.create({
         user: msg.user,
         text: msg.text.trim(),
-        time: new Date(),          
+        time: new Date(),
       });
 
       // 3. Broadcast to all clients
@@ -449,15 +517,11 @@ io.on("connection", (socket) => {
         .distinct("_id");
 
       await ChatMessage.deleteMany({ _id: { $nin: ids } });
-
     } catch (err) {
       console.error("Error handling chat message:", err);
     }
   });
 });
-
-
-
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

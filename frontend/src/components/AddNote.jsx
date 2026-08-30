@@ -23,6 +23,8 @@ function AddNote({ onAdd }) {
   const [useCases, setUseCases] = useState("");
   const [language, setLanguage] = useState("javascript");
   const [code, setCode] = useState("");
+  const [timeComplexity, setTimeComplexity] = useState("");
+  const [spaceComplexity, setSpaceComplexity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -36,6 +38,8 @@ function AddNote({ onAdd }) {
       useCases,
       language,
       code,
+      timeComplexity,
+      spaceComplexity,
     };
 
     try {
@@ -45,6 +49,8 @@ function AddNote({ onAdd }) {
       setDescription("");
       setUseCases("");
       setCode("");
+      setTimeComplexity("");
+      setSpaceComplexity("");
     } finally {
       setIsSubmitting(false);
     }
@@ -93,6 +99,23 @@ function AddNote({ onAdd }) {
               multiline
               rows={2}
             />
+
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="Time Complexity (e.g. O(n log n))"
+                value={timeComplexity}
+                onChange={(e) => setTimeComplexity(e.target.value)}
+                fullWidth
+                placeholder="O(n)"
+              />
+              <TextField
+                label="Space Complexity (e.g. O(n))"
+                value={spaceComplexity}
+                onChange={(e) => setSpaceComplexity(e.target.value)}
+                fullWidth
+                placeholder="O(1)"
+              />
+            </Stack>
 
             <FormControl fullWidth>
               <InputLabel id="language-label">Language</InputLabel>

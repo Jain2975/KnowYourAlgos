@@ -20,6 +20,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
+import Chip from "@mui/material/Chip";
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
@@ -47,6 +48,8 @@ function NoteCard({ note, index, onDelete, onEdit, onReorder }) {
     useCases: note.useCases,
     language: note.language || "javascript",
     code: note.code || "",
+    timeComplexity: note.timeComplexity || "",
+    spaceComplexity: note.spaceComplexity || "",
   });
   const [copied, setCopied] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -146,6 +149,33 @@ function NoteCard({ note, index, onDelete, onEdit, onReorder }) {
                 fullWidth
               />
 
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label="Time Complexity"
+                  value={editedNote.timeComplexity}
+                  onChange={(e) =>
+                    setEditedNote({
+                      ...editedNote,
+                      timeComplexity: e.target.value,
+                    })
+                  }
+                  fullWidth
+                  placeholder="e.g. O(n log n)"
+                />
+                <TextField
+                  label="Space Complexity"
+                  value={editedNote.spaceComplexity}
+                  onChange={(e) =>
+                    setEditedNote({
+                      ...editedNote,
+                      spaceComplexity: e.target.value,
+                    })
+                  }
+                  fullWidth
+                  placeholder="e.g. O(1)"
+                />
+              </Stack>
+
               <FormControl fullWidth>
                 <InputLabel>Language</InputLabel>
                 <Select
@@ -199,6 +229,31 @@ function NoteCard({ note, index, onDelete, onEdit, onReorder }) {
               <Typography>
                 <strong>Use Cases:</strong> {note.useCases}
               </Typography>
+
+              {(note.timeComplexity || note.spaceComplexity) && (
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ mt: 1, mb: 1, flexWrap: "wrap" }}
+                >
+                  {note.timeComplexity && (
+                    <Chip
+                      label={`⏱ Time: ${note.timeComplexity}`}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                    />
+                  )}
+                  {note.spaceComplexity && (
+                    <Chip
+                      label={`💾 Space: ${note.spaceComplexity}`}
+                      size="small"
+                      color="secondary"
+                      variant="outlined"
+                    />
+                  )}
+                </Stack>
+              )}
 
               {note.code && (
                 <Box sx={{ position: "relative", marginTop: "15px" }}>
