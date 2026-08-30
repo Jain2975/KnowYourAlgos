@@ -1,5 +1,4 @@
-import React, { useState, useEffect,useRef} from "react";
-
+import React, { useState, useEffect, useRef } from "react";
 
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -13,6 +12,17 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CheckIcon from "@mui/icons-material/Check";
 
 // PrismJS imports
 import Prism from "prismjs";
@@ -26,10 +36,9 @@ import "prismjs/plugins/line-numbers/prism-line-numbers";
 import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 
 //Drag and Drop
-import {useDrag,useDrop} from 'react-dnd';
+import { useDrag, useDrop } from "react-dnd";
 
-function NoteCard({ note,index, onDelete, onEdit,onReorder }) {
-
+function NoteCard({ note, index, onDelete, onEdit, onReorder }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedNote, setEditedNote] = useState({
     name: note.name,
@@ -39,6 +48,8 @@ function NoteCard({ note,index, onDelete, onEdit,onReorder }) {
     language: note.language || "javascript",
     code: note.code || "",
   });
+  const [copied, setCopied] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Highlight Prism after render/update
   useEffect(() => {
@@ -50,30 +61,43 @@ function NoteCard({ note,index, onDelete, onEdit,onReorder }) {
     setIsEditing(false);
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(note.code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDeleteConfirm = () => {
+    setDeleteOpen(false);
+    onDelete(note._id);
+  };
+
   //Drag and Drop
+  const ref = useRef(null);
 
-  const ref=useRef (null);
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: "NOTE",
+      item: { id: note._id, index },
+      collect: (monitor) => ({ isDragging: monitor.isDragging() }),
+    }),
+    [index, note._id],
+  );
 
-  const [{isDragging},drag]=useDrag(()=>({
-    type:"NOTE",
-    item:{id: note._id,index} ,
-    collect : (monitor)=>({ isDragging: monitor.isDragging() }),
-  }),[index,note._id]);
-
-  const[,drop] = useDrop({
-    accept:'NOTE',
-    hover: (item) =>{  
-      if(item.index !==index){
-        onReorder(item.index,index);
-        item.index=index; 
+  const [, drop] = useDrop({
+    accept: "NOTE",
+    hover: (item) => {
+      if (item.index !== index) {
+        onReorder(item.index, index);
+        item.index = index;
       }
-    }
+    },
   });
 
   drag(drop(ref));
 
   return (
-    <div ref={ref} sx={{ opacity: isDragging ? 0.5 : 1, cursor: 'move' }}>
+    <div ref={ref} style={{ opacity: isDragging ? 0.5 : 1, cursor: "move" }}>
       <Accordion sx={{ marginBottom: "10px" }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography>
@@ -151,7 +175,11 @@ function NoteCard({ note,index, onDelete, onEdit,onReorder }) {
               />
 
               <Stack direction="row" spacing={2}>
-                <Button variant="contained" color="success" onClick={handleSave}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={handleSave}
+                >
                   Save
                 </Button>
                 <Button
@@ -173,11 +201,32 @@ function NoteCard({ note,index, onDelete, onEdit,onReorder }) {
               </Typography>
 
               {note.code && (
-                <pre className="line-numbers" style={{ marginTop: "15px" }}>
-                  <code className={`language-${note.language}`}>
-                    {note.code}
-                  </code>
-                </pre>
+                <Box sx={{ position: "relative", marginTop: "15px" }}>
+                  <Tooltip title={copied ? "Copied!" : "Copy code"}>
+                    <IconButton
+                      size="small"
+                      onClick={handleCopy}
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        zIndex: 1,
+                        color: copied ? "success.main" : "grey.400",
+                      }}
+                    >
+                      {copied ? (
+                        <CheckIcon fontSize="small" />
+                      ) : (
+                        <ContentCopyIcon fontSize="small" />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                  <pre className="line-numbers" style={{ margin: 0 }}>
+                    <code className={`language-${note.language}`}>
+                      {note.code}
+                    </code>
+                  </pre>
+                </Box>
               )}
 
               <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
@@ -187,7 +236,7 @@ function NoteCard({ note,index, onDelete, onEdit,onReorder }) {
                 <Button
                   variant="contained"
                   color="error"
-                  onClick={() => onDelete(note._id)}
+                  onClick={() => setDeleteOpen(true)}
                 >
                   Delete
                 </Button>
@@ -196,6 +245,26 @@ function NoteCard({ note,index, onDelete, onEdit,onReorder }) {
           )}
         </AccordionDetails>
       </Accordion>
+
+      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
+        <DialogTitle>Delete this note?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete <strong>{note.name}</strong>? This
+            action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeleteConfirm}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

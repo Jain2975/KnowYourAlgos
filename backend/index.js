@@ -10,7 +10,8 @@ import jwt from "jsonwebtoken";
 import pdf from "html-pdf-node";
 import { Server } from "socket.io";
 import http from "http";
-import { reverse } from 'dns';
+
+
 
 dotenv.config();
 
@@ -39,25 +40,27 @@ app.use(cors({
 
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI,{
-  ssl: true,                       
-  tlsAllowInvalidCertificates: false, 
-  serverSelectionTimeoutMS: 10000
-})
-// mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error(err));
 
-
-//Below is for local testing
-
+//Below is for deployment
 // mongoose.connect(process.env.MONGO_URI,{
-//   //ssl: true,                       
-  
+//   ssl: true,                       
+//   tlsAllowInvalidCertificates: false, 
+//   serverSelectionTimeoutMS: 10000
 // })
 // // mongoose.connect(process.env.MONGO_URI)
 //   .then(() => console.log("MongoDB connected"))
 //   .catch(err => console.error(err));
+
+
+//Below is for local testing
+
+mongoose.connect(process.env.MONGO_URI,{
+  //ssl: true,                       
+  
+})
+// mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error(err));
 
 //Models
 const UserSchema=new mongoose.Schema({
@@ -452,6 +455,9 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+
+
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
